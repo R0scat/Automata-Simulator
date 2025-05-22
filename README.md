@@ -2,7 +2,7 @@
 Python script that simulates a working DFA and NFA, reads a string of commands, displays the states the automata passes through and checks if the final state is accepted or not.
 
 ## Deterministic Formal Automata (DFA)
-Given states and an alphabet it passes through them and check if the final one is accepted or not. For it to change states it always needs an input. 
+Given states and an alphabet it passes through them and checks if the final one is accepted or not. For it to change states it always needs an input. 
 
 ### Setup
 In the *in.txt* file:
