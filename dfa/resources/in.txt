@@ -1,0 +1,45 @@
+
+# input must be given in order
+# comments are marked with #
+
+# possible states
+Hallway
+Kitchen
+Library
+Exit # lalalala comment
+Entrance, SecretRoom
+# end
+
+# alphabet/ sigma
+left, right, up #no way
+down
+# end lalalala
+
+# transitions
+Hallway, up, SecretRoom
+Hallway, right, Library
+Hallway, left, Kitchen
+Hallway, down, Entrance
+# HallwaySpoon, up, SecretRoomSpoon
+# HallwaySpoon, right, LibrarySpoon
+# HallwaySpoon, left, Kitchen
+# HallwaySpoon, down, EntranceSpoon
+Entrance, up, Hallway
+# EntranceSpoon, up HallwaySpoon
+# Kitchen, right, HallwaySpoon
+SecretRoom, down, Hallway
+# SecretRoomSpoon, down, HallwaySpoon
+Library, left, Hallway
+Library, down, Exit
+# LibrarySpoon, left, HallwaySpoon
+# LibrarySpoon, down, Exit
+# end
+
+# start state
+Entrance # obvi
+# end
+
+# final state
+Exit
+SecretRoom
+# end

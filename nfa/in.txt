@@ -1,0 +1,24 @@
+
+# possible states
+q0, q1, q2, q3
+# end
+
+# alphabet/ sigma
+a, b
+e
+# end
+
+# transitions
+q0, e, q1
+q0, e, q2
+q1, a, q3
+q2, b, q3
+# end
+
+# start state
+q0
+# end
+
+# final state
+q3
+# end
