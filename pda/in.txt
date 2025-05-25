@@ -1,0 +1,39 @@
+# possible states
+q0
+q1
+q2
+# end
+
+# alphabet/ sigma (input alphabet)
+a
+b
+# end
+
+# stack alphabet
+Z # Initial stack symbol often
+A
+B
+# end
+
+# transitions
+# format: currentState,inputSymbolOrEpsilon,stackSymbolToPop,nextState,stringOfSymbolsToPush
+# Exemplu pt L = {a^n b^n | n >= 0}, accepta si sirul vid
+q0,epsilon,Z,q2,Z # Path for empty string (if Z is initial, accept state q2 needs to handle it)
+q0,a,Z,q0,AZ  # Read 'a', Z on stack -> push A then Z (A is new top)
+q0,a,A,q0,AA  # Read 'a', A on stack -> push A then A
+q0,b,A,q1,epsilon # Read 'b', A on stack -> pop A, go to q1 (matching mode)
+q1,b,A,q1,epsilon # Read 'b', A on stack -> pop A (continue matching)
+q1,epsilon,Z,q2,Z # Input exhausted, Z on stack -> go to accept state q2 (keep Z or pop Z if final acceptance requires empty stack)
+# end
+
+# start state
+q0
+# end
+
+# initial stack symbol
+Z
+# end
+
+# final states (accepted states)
+q2
+# end

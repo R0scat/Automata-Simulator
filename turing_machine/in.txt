@@ -1,0 +1,43 @@
+# possible states
+q0
+q1
+q_accept
+q_reject 
+# end
+
+# input alphabet (sigma)
+0
+1
+# end
+
+# tape alphabet (gamma)
+0
+1
+X  # Symbol to mark 0
+Y  # Symbol to mark 1
+B  # Blank symbol
+# end
+
+# blank symbol
+B
+# end
+
+# transitions
+# current_state, read_symbol, next_state, write_symbol, direction
+# Example TM: Converts input 0s to Xs, 1s to Ys, then accepts.
+q0,0,q0,X,R
+q0,1,q0,Y,R
+q0,X,q0,X,R  # Skip already marked Xs
+q0,Y,q0,Y,R  # Skip already marked Ys
+q0,B,q_accept,B,S # Found blank after input, accept
+# A reject state example (though not strictly necessary if halting implies reject)
+q1,0,q_reject,0,S 
+# end
+
+# start state
+q0
+# end
+
+# accepted states (final states)
+q_accept
+# end
