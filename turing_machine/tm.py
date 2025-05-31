@@ -1,8 +1,8 @@
 import collections
 
-# --- Configuration ---
-MAX_TM_STEPS = 5000  # Maximum steps for TM simulation to prevent infinite loops
-TAPE_WINDOW_SIZE = 15 # For displaying a portion of the tape
+# elemente de configuratie
+MAX_TM_STEPS = 5000  # nr maxim de pasi pe care ii poate face TM-ul 
+TAPE_WINDOW_SIZE = 15 # pt tape delay
 
 def printAutom(autom_dict):
     print("Input parsed successfully, given values:")
@@ -40,14 +40,13 @@ def extractTransitionTM(line):
 def addData(inpt, field_name, autom_dict_ref):
     """Adds parsed data to the automata dictionary for the given field."""
     extracted_values = extractInput(inpt)
-    # Only create/extend if there's actual data, or if the field can be an empty list.
     if extracted_values or field_name in ['states', 'input alphabet', 'tape alphabet', 'transitions', 'accepted states']:
         if field_name not in autom_dict_ref:
             autom_dict_ref[field_name] = extracted_values
         else:
             if isinstance(autom_dict_ref[field_name], list) and isinstance(extracted_values, list):
                 autom_dict_ref[field_name].extend(extracted_values)
-            elif isinstance(extracted_values, list) and extracted_values: # If field was somehow not a list but should be
+            elif isinstance(extracted_values, list) and extracted_values: # if field was somehow not a list but should be
                 autom_dict_ref[field_name] = extracted_values
 
 
@@ -157,7 +156,7 @@ def startTuringMachineSimulation(input_sequence_str, autom_dict):
                     head_pos -= 1
                 elif direction == 'R':
                     head_pos += 1
-                # 'S' (Stay) means head_pos doesn't change
+                # 'S'= stay = stai pe loc = nu se schimba head_pos
 
                 current_state = next_state
                 found_transition = True
@@ -204,7 +203,6 @@ def parseAndValidateTM(autom_dict, tm_fields_list):
         if not autom_dict.get(field_name) and field_name == 'states':
             print(f"Error: '{field_name}' cannot be empty.")
             return False
-        # Ensure field exists before checking for duplicates, even if it's an empty list (e.g. empty alphabet)
         current_field_values = autom_dict.get(field_name, [])
         if len(current_field_values) != len(set(current_field_values)):
             print(f"Error: Duplicate items found in '{field_name}': {current_field_values}")
@@ -216,8 +214,8 @@ def parseAndValidateTM(autom_dict, tm_fields_list):
     blank_sym = blank_sym_list[0] if blank_sym_list else None
 
 
-    if not blank_sym: # Already checked if 'blank symbol' key exists and has one item
-        print("Error: Blank symbol is not defined or has incorrect format.") # Should have been caught earlier
+    if not blank_sym: 
+        print("Error: Blank symbol is not defined or has incorrect format.") 
         return False
     if blank_sym not in tape_alpha_set:
         print(f"Error: Blank symbol '{blank_sym}' not in tape alphabet {tape_alpha_set}.")
@@ -250,7 +248,7 @@ def parseAndValidateTM(autom_dict, tm_fields_list):
     
     return True
 
-# --- Main script execution ---
+# PARTEA PRINCIPALA A CODULUI 
 if __name__ == "__main__":
     autom = {} 
     tm_fields = ['states', 'input alphabet', 'tape alphabet', 'blank symbol', 
@@ -267,15 +265,14 @@ if __name__ == "__main__":
     for line_num, line_content_orig in enumerate(lines):
         line_content_stripped = line_content_orig.strip()
 
-        if not line_content_stripped:  # Skip truly empty lines
+        if not line_content_stripped:  # da skip la liniile complet nule
             continue
 
-        # Default: line is not an end marker, not a full comment being skipped
         process_as_data = True
         
-        # Check if the line is a full comment (and if that comment is an end marker)
+        # verif daca e un comentariu complet linia
         if line_content_stripped.startswith('#'):
-            process_as_data = False # Assume it's not data, unless it's an unhandled line type
+            process_as_data = False # presupune ca linia nu are date (deci nu e procesata ca data relevanta)
             potential_end_marker_text = line_content_stripped[1:].strip().lower()
             is_special_comment_end_marker = False
 
@@ -289,23 +286,22 @@ if __name__ == "__main__":
                 current_field_idx += 1
                 if current_field_idx > len(tm_fields):
                     print(f"Warning (line {line_num+1}): Too many 'end' markers (comment '{line_content_orig.strip()}').")
-                # This line was an end marker (disguised as comment), so skip further processing for this line
+                # line was an end marker (disguised as comment), so skip further processing for this line
                 continue 
             else:
-                # It's just a regular comment line, skip it
+                # comment line simplu caruia i se da skip
                 continue
         
-        # If not a full comment line, it might still have an end-of-line comment,
-        # or it could be a non-comment 'end' marker, or data.
-        effective_content = line_content_stripped # Start with the stripped line
-        if '#' in effective_content: # Check for end-of-line comment
+        # nu e comment complet dar oate fi in continuare end-comment, non-comment 'end' sau data
+        effective_content = line_content_stripped 
+        if '#' in effective_content: # verif daca e end-comment
             effective_content, _ = effective_content.split('#', 1)
             effective_content = effective_content.strip()
         
-        if not effective_content: # Became empty after stripping end-of-line comment
+        if not effective_content: 
             continue
 
-        # Now, check if this effective_content is an 'end' marker
+        # verif 'end'
         is_section_end_marker = False
         normalized_effective_content = effective_content.lower()
 
@@ -317,12 +313,12 @@ if __name__ == "__main__":
         
         if is_section_end_marker:
             current_field_idx += 1
-            if current_field_idx > len(tm_fields): # Should ideally not happen if file is well-formed
+            if current_field_idx > len(tm_fields): # should literally not happen if file is well-formed (ideal)
                 print(f"Warning (line {line_num+1}): Too many 'end' markers ('{line_content_orig.strip()}').")
-            process_as_data = False # It was an end marker
-            continue # Skip to next line after processing 'end'
+            process_as_data = False # end marker
+            continue # skip linia urmatoare dupa procesarea 'end'
 
-        # If we've reached here, effective_content is data for the current field
+        # de aici effective_content e data pt ce field-ul curent
         if process_as_data:
             if current_field_idx >= len(tm_fields):
                 if effective_content: 
