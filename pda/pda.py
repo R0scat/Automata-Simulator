@@ -35,20 +35,16 @@ def extractTransitionPDA(line):
 def addData(inpt, field_name, autom_dict):
     """Adds parsed data to the automata dictionary for the given field."""
     extracted_values = extractInput(inpt)
-    if not extracted_values and field_name not in ['transitions', 'alphabet', 'stack alphabet', 'states']: # These can start empty and be populated
-         # print(f"Note: No data provided for '{field_name}' from line '{inpt}' during initial add.")
-         pass # Allow empty, validation will handle later if mandatory fields are missing items
+    if not extracted_values and field_name not in ['transitions', 'alphabet', 'stack alphabet', 'states']: 
+         pass # validarea va fi facuta mai tarziu (momentan pot fi empty)
 
     if field_name not in autom_dict:
         autom_dict[field_name] = extracted_values
     else:
-        # Ensure list extension, not character-by-character for strings
         if isinstance(autom_dict[field_name], list) and isinstance(extracted_values, list):
              autom_dict[field_name].extend(extracted_values)
         elif isinstance(extracted_values, list) and extracted_values: # if autom_dict[field_name] was not init as list
              autom_dict[field_name] = extracted_values
-        # Handle cases where a field might expect a single value but gets multiple lines; extractInput handles single/multiple items per line.
-        # For 'start state' and 'initial stack symbol', validation will ensure only one item.
 
 
 def addTransitionPDA(line_content, autom_dict):
@@ -90,7 +86,7 @@ def checkValidityPDATransition(transition, autom_dict):
     
 def isInputStringValid(input_str, alphabet):
     """Checks if all symbols in the input string are in the defined alphabet."""
-    if not input_str.strip(): # Empty string is a valid sequence of 0 symbols
+    if not input_str.strip(): # sirul vid valid
         return True
     symbols = input_str.split()
     for sym in symbols:
@@ -113,37 +109,33 @@ def startCompilingPDA(input_sequence_str, autom_dict):
         print(f"Error: Initial stack symbol '{initial_stack_sym}' is 'epsilon' or not in stack alphabet.")
         return False
         
-    # Queue stores: (current_state, input_index, current_stack_list)
-    # input_index is the index of the *next* symbol to read.
+    # queue stores: (current_state, input_index, current_stack_list)
+    # input_index = indexul urmatorului simbol ce trebuie citit 
     queue = collections.deque([(initial_state, 0, [initial_stack_sym])])
-    # Visited stores: (state, input_index, tuple(stack))
+    # (state, input_index, tuple(stack))
     visited = set([(initial_state, 0, tuple([initial_stack_sym]))])
 
-    accepted_configurations_details = [] # To store details of accepting paths
-
-    max_stack_heuristic = len(input_symbols) + len(autom_dict.get('states', [])) + 50 # Basic heuristic
+    accepted_configurations_details = [] 
+    max_stack_heuristic = len(input_symbols) + len(autom_dict.get('states', [])) + 50 
 
     while queue:
         current_state, input_idx, current_stack = queue.popleft()
 
-        # --- 1. Try Epsilon-input transitions first ---
         # (state, 'epsilon', pop_sym) -> (next_state, push_syms)
         for trans_idx, trans in enumerate(autom_dict.get('transitions', [])):
             if trans[0] == current_state and trans[1] == 'epsilon':
                 pop_symbol = trans[2]
                 
                 if not current_stack or current_stack[-1] != pop_symbol:
-                    continue # Stack empty or top doesn't match pop_symbol
+                    continue 
 
                 new_stack_after_pop = list(current_stack[:-1])
-                final_new_stack_eps = list(new_stack_after_pop) # Make a copy
+                final_new_stack_eps = list(new_stack_after_pop) 
 
                 symbols_to_push = trans[4]
                 if symbols_to_push != 'epsilon':
-                    for char_idx in range(len(symbols_to_push) - 1, -1, -1): # Push in reverse
+                    for char_idx in range(len(symbols_to_push) - 1, -1, -1): 
                         final_new_stack_eps.append(symbols_to_push[char_idx])
-                
-                # Heuristic stack depth check
                 if len(final_new_stack_eps) > max_stack_heuristic :
                     # print(f"Warning: Stack depth limit exceeded on epsilon transition. Pruning path.")
                     continue
@@ -155,18 +147,12 @@ def startCompilingPDA(input_sequence_str, autom_dict):
                     queue.append((trans[3], input_idx, final_new_stack_eps))
                     # print(f"  Epsilon transition {trans} -> State={trans[3]}, Idx={input_idx}, Stack={final_new_stack_eps}")
 
-
-        # --- 2. Check for acceptance if input is fully consumed ---
-        # This check happens after all possible epsilon transitions from the current state are explored.
         if input_idx == len(input_symbols):
             if current_state in autom_dict.get('accepted states', []):
                 accept_detail = f"Accepted: State={current_state}, Input Consumed, Stack={current_stack}"
                 if accept_detail not in accepted_configurations_details: # Avoid duplicate messages for same end state
                     accepted_configurations_details.append(accept_detail)
-                # To find one acceptance: return True. To find all, continue processing queue.
-                # For this implementation, we'll gather all and report at the end.
 
-        # --- 3. Try transitions consuming an input symbol ---
         if input_idx < len(input_symbols):
             current_input_char = input_symbols[input_idx]
             for trans_idx, trans in enumerate(autom_dict.get('transitions', [])):
@@ -174,10 +160,10 @@ def startCompilingPDA(input_sequence_str, autom_dict):
                     pop_symbol = trans[2]
 
                     if not current_stack or current_stack[-1] != pop_symbol:
-                        continue # Stack empty or top doesn't match pop_symbol
+                        continue 
                         
                     new_stack_after_pop = list(current_stack[:-1])
-                    final_new_stack_input = list(new_stack_after_pop) # Make a copy
+                    final_new_stack_input = list(new_stack_after_pop) 
 
                     symbols_to_push = trans[4]
                     if symbols_to_push != 'epsilon':
@@ -215,7 +201,7 @@ def runPDA(autom_dict):
     
 def parseAndValidate(autom_dict, pda_fields_list):
     """Validates the parsed PDA structure."""
-    # Basic structural checks
+    # basic checks
     for field in ['states', 'alphabet', 'stack alphabet', 'transitions', 'start state', 'initial stack symbol', 'accepted states']:
         if field not in autom_dict:
             if field == 'transitions': # Transitions can be empty for some PDAs
@@ -223,73 +209,60 @@ def parseAndValidate(autom_dict, pda_fields_list):
             else:
                 print(f"Error: Mandatory field '{field}' is missing from the definition.")
                 return False
-        # Ensure fields that expect lists are lists
         if field in ['states', 'alphabet', 'stack alphabet', 'transitions', 'accepted states'] and not isinstance(autom_dict[field], list):
              print(f"Error: Field '{field}' should be a list. Found: {type(autom_dict[field])}")
              return False
-        # Ensure single-item fields are lists of one item
         if field in ['start state', 'initial stack symbol']:
             if not isinstance(autom_dict[field], list) or len(autom_dict[field]) != 1:
                 print(f"Error: Field '{field}' must contain exactly one item. Found: {autom_dict[field]}")
                 return False
-
-
-    # Validate states, alphabet, stack alphabet (ensure no 'epsilon' keyword unless intended, and no duplicates)
     for field_name in ['states', 'alphabet', 'stack alphabet']:
-        if not autom_dict.get(field_name): # Allow empty alphabet/stack alphabet if not used by transitions
-            if field_name == 'states' : # States cannot be empty
+        if not autom_dict.get(field_name): 
+            if field_name == 'states' : 
                 print(f"Error: '{field_name}' cannot be empty.")
                 return False
             # print(f"Warning: '{field_name}' is empty.")
-            autom_dict[field_name] = [] # Ensure it's an empty list
+            autom_dict[field_name] = [] 
         
-        # Check for duplicates
         if len(autom_dict[field_name]) != len(set(autom_dict[field_name])):
             print(f"Error: Duplicate items found in '{field_name}': {autom_dict[field_name]}")
             return False
-        # 'epsilon' should not be a state name or stack symbol by convention
-        if 'epsilon' in autom_dict[field_name] and field_name != 'alphabet': # epsilon can be in sigma
+        if 'epsilon' in autom_dict[field_name] and field_name != 'alphabet': 
              print(f"Warning: 'epsilon' found in '{field_name}'. This is unconventional.")
 
 
-    # Validate start state
     start_state = autom_dict['start state'][0]
     if start_state not in autom_dict['states']:
         print(f"Error: Start state '{start_state}' not in defined states {autom_dict['states']}.")
         return False
 
-    # Validate initial stack symbol
     initial_stack_sym = autom_dict['initial stack symbol'][0]
     if initial_stack_sym == 'epsilon' or initial_stack_sym not in autom_dict['stack alphabet']:
         print(f"Error: Initial stack symbol '{initial_stack_sym}' is 'epsilon' or not in stack alphabet {autom_dict['stack alphabet']}.")
         return False
-
-    # Validate accepted states
-    if not autom_dict.get('accepted states'): # Accepted states list can be empty
+        
+    if not autom_dict.get('accepted states'): 
         # print("Warning: No accepted states defined.")
         pass
     for acc_state in autom_dict.get('accepted states', []):
         if acc_state not in autom_dict['states']:
             print(f"Error: Accepted state '{acc_state}' not in defined states {autom_dict['states']}.")
             return False
-
-    # Validate transitions
     valid_transitions = []
     for t_idx, trans_tuple in enumerate(autom_dict.get('transitions', [])):
         if checkValidityPDATransition(trans_tuple, autom_dict):
             valid_transitions.append(trans_tuple)
         else:
             print(f"Error: Invalid transition #{t_idx + 1}: {trans_tuple}. Automata cannot run.")
-            return False # Stop if any transition is invalid
+            return False 
     autom_dict['transitions'] = valid_transitions 
     
     return True
 
 
-# --- Main script execution ---
+
 if __name__ == "__main__":
     autom = {}
-    # Order is important for parsing based on 'end' keyword
     pda_fields = ['states', 'alphabet', 'stack alphabet', 'transitions', 
                   'start state', 'initial stack symbol', 'accepted states']
     current_field_idx = 0
@@ -307,29 +280,24 @@ if __name__ == "__main__":
         if not line_content: # Skip empty lines
             continue
         
-        if line_content.startswith('#'): # Skip full comment lines
-            # Check for 'end' within a comment, which is unusual but technically possible
-            if 'end' in line_content.lower() and current_field_idx < len(pda_fields) and line_content.strip().lower() == f"# {pda_fields[current_field_idx]} end": # A very specific comment format
+        if line_content.startswith('#'):
+            if 'end' in line_content.lower() and current_field_idx < len(pda_fields) and line_content.strip().lower() == f"# {pda_fields[current_field_idx]} end": 
                 current_field_idx +=1
             elif 'end' in line_content.lower() and not line_content.lower().startswith('# end'): # avoid generic #...end...
-                 pass # Just a comment with 'end' in it.
-            elif line_content.lower() == '# end': # Generic '# end'
+                 pass 
+            elif line_content.lower() == '# end': 
                 current_field_idx +=1
 
-            continue # Process next line
+            continue 
 
-        # Handle comments at the end of a line
         if '#' in line_content:
             line_content, _ = line_content.split('#', 1)
             line_content = line_content.strip()
-            if not line_content: # Line became empty after stripping comment
+            if not line_content: 
                  continue
 
 
-        if 'end' in line_content.lower(): # Check for 'end' keyword
-            # Simple 'end' or 'section end' should advance the field index
-            # More robustly, check if it's ONLY 'end' possibly with section name
-            # e.g. "# end states" or simply "end"
+        if 'end' in line_content.lower(): 
             is_section_end = False
             if line_content.lower() == 'end':
                 is_section_end = True
@@ -341,10 +309,10 @@ if __name__ == "__main__":
                 current_field_idx += 1
                 if current_field_idx > len(pda_fields):
                     print(f"Warning (line {line_num+1}): Too many 'end' markers or incorrect file structure. Expected {len(pda_fields)} sections.")
-                continue # Move to next line after processing 'end'
+                continue 
 
         if current_field_idx >= len(pda_fields):
-            if line_content: # Non-empty, non-comment line after all fields parsed
+            if line_content: 
                  print(f"Warning (line {line_num+1}): Data '{line_content}' found after all expected sections have been closed.")
             continue
 
